@@ -35,11 +35,14 @@ function getDepend(target: TargetType, key: keyof TargetType) {
 }
 
 const obj = {
-  name: 'miles'
+  name: 'miles',
+  age: 30
 }
 
 const proxyObj = new Proxy(obj, {
   get(target, key, receive) {
+    const depend = getDepend(target, key as string)
+    activeFn && depend.addDepend(activeFn)
     return Reflect.get(target, key, receive)
   },
   set(target, key, newValue, receive) {
@@ -50,8 +53,34 @@ const proxyObj = new Proxy(obj, {
   }
 })
 
+let activeFn: null | (() => void) = null
+function watchFn(fn: () => void) {
+  activeFn = fn
+  fn()
+  activeFn = null
+}
 
+watchFn(() => {
+  console.log('name start----')
+  console.log(proxyObj.name)
+  console.log('name end----')
+})
+
+watchFn(() => {
+  console.log('age1 start----')
+  console.log(proxyObj.age)
+  console.log(proxyObj.name);
+  console.log('age1 end----')
+})
+
+watchFn(() => {
+  console.log('age2 start----')
+  console.log(proxyObj.age)
+  console.log('age2 end----')
+})
+
+console.log('----------');
 
 proxyObj.name = 'aaa'
-proxyObj.name = 'bbb'
-proxyObj.name = 'ccc'
+proxyObj.age = 40
+
