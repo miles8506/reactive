@@ -1,86 +1,27 @@
-type TargetType = Record<string, unknown>
+import { reactive, reactiveES5 } from './utils/reactive'
+import { watchFn } from './utils/depend'
 
-class Depend {
-  reactiveFns: Array<() => void>
+// example
 
-  constructor() {
-    this.reactiveFns = []
-  }
-
-  addDepend(fn: () => void) {
-    this.reactiveFns.push(fn)
-  }
-
-  notify() {
-    this.reactiveFns.forEach(fn => fn())
-  }
-}
-
-const targetMap = new WeakMap<TargetType, Map<string, Depend>>()
-
-function getDepend(target: TargetType, key: keyof TargetType) {
-  let map = targetMap.get(target)
-  if (!map) {
-    map = new Map()
-    targetMap.set(target, map)
-  }
-
-  let depend = map.get(key)
-  if (!depend) {
-    depend = new Depend()
-    map.set(key, depend)
-  }
-
-  return depend
-}
-
-const obj = {
-  name: 'miles',
-  age: 30
-}
-
-const proxyObj = new Proxy(obj, {
-  get(target, key, receive) {
-    const depend = getDepend(target, key as string)
-    activeFn && depend.addDepend(activeFn)
-    return Reflect.get(target, key, receive)
-  },
-  set(target, key, newValue, receive) {
-    const val = Reflect.set(target, key, newValue, receive)
-    const depend = getDepend(target, key as string)
-    depend.notify()
-    return val
-  }
+/** 
+ * 1. create reactive as Proxy(ES6)
+ * 2. create reactiveES5 as Object.defineProperty(ES5)
+*/
+const foo = reactive({
+  count: 0,
+  bar: 'bar'
 })
 
-let activeFn: null | (() => void) = null
-function watchFn(fn: () => void) {
-  activeFn = fn
-  fn()
-  activeFn = null
-}
-
+/** 
+ * 1. The callback function will be executed the first time it is run
+ * 2. When the object properties change, the callback function will be called directly
+ * */ 
 watchFn(() => {
-  console.log('name start----')
-  console.log(proxyObj.name)
-  console.log('name end----')
+  console.log('execute watchFn')
+  console.log(foo.count)
 })
 
-watchFn(() => {
-  console.log('age1 start----')
-  console.log(proxyObj.age)
-  console.log(proxyObj.name);
-  console.log('age1 end----')
-})
 
-watchFn(() => {
-  console.log('age2 start----')
-  console.log(proxyObj.age)
-  console.log('age2 end----')
-})
-
-console.log('----------');
-
-proxyObj.name = 'aaa'
-proxyObj.age = 40
-
+setTimeout(() => {
+  foo.count++
+}, 3000)
