@@ -1,7 +1,7 @@
 import { TargetType } from '../type'
 
 let activeFn: null | (() => void) = null
-const targetMap = new WeakMap<object, Map<string, Depend>>()
+const targetMap = new WeakMap<TargetType, Map<string, Depend>>()
 
 class Depend {
   reactiveFns: Set<() => void>

@@ -26,7 +26,7 @@ export function reactive<T extends TargetType>(obj: T): T {
 export function reactiveES5<T extends TargetType>(obj: T): T {
   Object.keys(obj).forEach((key) => {
     let val = obj[key]
-    Object.defineProperty(obj, key, {
+    Object.defineProperty<T>(obj, key, {
       get() {
         const depend = getDepend(obj, key)
         depend.depend()
